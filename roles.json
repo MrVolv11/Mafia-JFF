@@ -1,0 +1,39 @@
+{
+  "roles": [
+    {
+      "name": "Mafiozo",
+      "count": 1,
+      "description": "Eliminuje graczy w nocy.",
+      "alignment": "bad",
+      "choose": "number"
+    },
+    {
+      "name": "Lekarz",
+      "count": 1,
+      "description": "Chroni jednego gracza w nocy.",
+      "alignment": "good",
+      "choose": "bool"
+    },
+    {
+      "name": "Detektyw",
+      "count": 0,
+      "description": "Sprawdza rolę gracza.",
+      "alignment": "good",
+      "choose": "bool"
+    },
+    {
+      "name": "Aliant",
+      "count": 0,
+      "description": "Sprawdza rolę gracza.",
+      "alignment": "good",
+      "choose": "bool"
+    },
+    {
+      "name": "Debil",
+      "count": 0,
+      "description": "Sprawdza rolę gracza.",
+      "alignment": "good",
+      "choose": "bool"
+    }
+  ]
+}

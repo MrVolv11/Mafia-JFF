@@ -1,0 +1,18 @@
+[
+  {
+    "name": "Zgubiony głos",
+    "description": "<br>Gracz {gracz} traci głos w najbliższym głosowaniu."
+  },
+  {
+    "name": "Wygnanie",
+    "description": "<br>Gracz {gracz} zostaje wygnany i traci możliwość działania w tej rundzie."
+  },
+  {
+    "name": "Deszczowa noc",
+    "description": "<br>Wszyscy gracze muszą zostać w domach, co uniemożliwia nocne akcje."
+  },
+  {
+    "name": "Tajemnicza mgła",
+    "description": "<br>Tożsamość gracza {gracz} zostaje ukryta do końca rundy."
+  }
+]
