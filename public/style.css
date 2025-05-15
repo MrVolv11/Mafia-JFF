@@ -10,10 +10,11 @@ body {
   background-size: cover;
   background-color: #1a1a1a;
   color: #d4d4d4;
-  min-height: 100vh;
+  min-height: 85vh;
   display: flex;
   justify-content: center;
   align-items: center;
+  overflow-x: hidden;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -28,6 +29,21 @@ body {
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
   text-align: center;
   overflow-x: auto;
+}
+
+#player-view {
+  width: 100%;
+  max-width: 500px;
+  height: 100%;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  position: relative;
+}
+
+#player-view.active {
+  display: flex;
 }
 
 h1, h2, h3, h4 {
@@ -181,6 +197,25 @@ button:disabled {
   background: #03a9f4;
 }
 
+#roles-menu-button {
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  background: #4a2c2a;
+  color: #fff;
+  border: 2px solid #b22222;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  font-size: 1.8rem;
+  line-height: 60px;
+  padding: 0;
+  cursor: pointer;
+  z-index: 1001;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+  text-align: center;
+}
+
 #join-section {
   display: flex;
   flex-direction: column;
@@ -244,7 +279,7 @@ button:disabled {
   background: #2a2a2a;
   padding: 10px;
   border-radius: 8px;
-  justify-content: space-between; /* Rozmieszcza nazwę roli i input równomiernie */
+  justify-content: space-between;
 }
 
 #roles-config input[type="number"] {
@@ -258,7 +293,7 @@ button:disabled {
   width: 20px;
   height: 20px;
   margin-left: 10px;
-  accent-color: #b22222; /* Czerwony kolor checkboxa dla spójności z motywem */
+  accent-color: #b22222;
   cursor: pointer;
 }
 
@@ -384,80 +419,77 @@ button:disabled {
   margin-top: 15px;
 }
 
-#player-view {
+.card {
+  perspective: 1000px;
+  width: 100%;
+  max-width: 500px;
+  height: calc(500px / 0.64);
+  margin: 0;
   position: relative;
-  padding-bottom: 20px;
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+  margin-top: 70px;
+}
+
+.card.flipped {
+  transform: rotateY(180deg);
+}
+
+.card.disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.card-front, .card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.85);
+  border: 2px solid #4a2c2a;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.card-front {
+  flex-direction: column;
+  gap: 250px;
+}
+
+.card-back {
+  transform: rotateY(180deg);
+}
+
+.card-content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: 300px;
+  justify-content: center;
   width: 100%;
-  max-width: 600px; /* Powiększone z 460px do 600px, aby pomieścić szersze bloki */
-}
-
-#role-button {
-  background: #b22222;
-  padding: 15px;
-  font-size: 1.1rem;
-  width: 200px;
-  position: sticky;
-  top: 20px;
-  z-index: 10;
-}
-
-
-#role-info, #additional-role-info {
-  margin: 10px auto;
+  height: 100%;
   padding: 20px;
-  background: #2a2a2a;
-  border: 1px solid #4a2c2a;
-  border-radius: 8px;
-  max-width: 100%; /* Dopasowane do kontenera na małych ekranach */
-  max-width: 560px; /* Powiększone z 460px do 560px, aby wypełniać powiększony kontener */
-  min-height: 100px;
-  max-height: 200px;
-  font-size: 0.85rem;
-  overflow-y: auto;
-  display: none;
-  padding: 15px;
   text-align: center;
-  line-height: 1.6;
-  position: relative; /* Zmienione z absolute na relative, aby bloki układały się naturalnie */
-  z-index: 15;
 }
 
-#role-info {
-  margin-bottom: 2px; /* Minimalny przesmyk (2px) między blokami */
-}
-
-#additional-role-info {
-  margin-top: 2px; /* Minimalny przesmyk od góry, aby bloki były blisko siebie */
-}
-
-#role-info[style*="display: block"], #additional-role-info[style*="display: block"] {
-  display: block !important;
+.card-content h2 {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
 }
 
 #player-event-message, #host-event-message, #random-event-message {
-  margin: 10px auto;
   padding: 15px;
   background: #3e2723;
-  border: 1px solid #b22222;
+  border: 2px solid #b22222;
   border-radius: 8px;
   max-width: 90%;
   min-height: 60px;
-  display: none;
-  text-align: center;
+  font-size: 0.9rem;
   line-height: 1.6;
   color: #fff;
-  position: relative;
-  z-index: 5;
-}
-
-#player-event-message span.player-name,
-#host-event-message span.player-name,
-#random-event-message span.player-name {
-  font-weight: bold;
+  display: none;
 }
 
 #player-event-message[style*="display: block"],
@@ -466,25 +498,41 @@ button:disabled {
   display: block !important;
 }
 
-#roles-menu-button {
-  position: fixed;
-  top: 15px;
-  right: 15px;
-  background: #4a2c2a;
-  color: #fff;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  font-size: 1.5rem;
-  line-height: 48px;
-  padding: 0;
-  border: 1px solid #b22222;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+#player-event-message span.player-name,
+#host-event-message span.player-name,
+#random-event-message span.player-name {
+  font-weight: bold;
+}
+
+#role-info {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #d4d4d4;
+  width: 100%;
+  display: none;
+}
+
+#role-info[style*="display: block"] {
+  display: block !important;
+}
+
+#role-info div {
+  margin-bottom: 150px;
+}
+
+#role-info div:last-child {
+  margin-bottom: 0;
+}
+
+#role-info strong {
+  color: #b22222;
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 1rem;
 }
 
 #roles-menu {
   position: fixed;
-  top: 70px;
+  top: 80px;
   right: 15px;
   background: #2a2a2a;
   border: 1px solid #4a2c2a;
@@ -641,12 +689,6 @@ button:disabled {
   background: #d32f2f;
 }
 
-@media (min-width: 601px) {
-  #host-players-grid, #roles-config {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
 @media (max-width: 600px) {
   body {
     margin: 10px;
@@ -708,15 +750,40 @@ button:disabled {
   #player-count {
     margin-top: 8px;
   }
-  #player-view {
-    max-width: 100%; /* Pełna szerokość na małych ekranach */
-  }
   #join-buttons {
     flex-direction: column;
     gap: 8px;
   }
-  #role-info, #player-event-message, #host-event-message, #random-event-message {
+  #player-event-message, #host-event-message, #random-event-message {
     font-size: 0.85rem;
+  }
+  .card {
+    max-width: calc(100vw - 20px);
+    height: calc((100vw - 20px) / 0.64);
+  }
+  .card-content h2 {
+    font-size: 1.3rem;
+  }
+  .card-front {
+    gap: 200px;
+  }
+  #role-info {
+    font-size: 0.85rem;
+  }
+  #role-info div {
+    margin-bottom: 120px;
+  }
+  #role-info div:last-child {
+    margin-bottom: 0;
+  }
+  #roles-menu-button {
+    width: 50px;
+    height: 50px;
+    font-size: 1.5rem;
+    line-height: 50px;
+  }
+  #roles-menu {
+    top: 70px;
   }
 }
 
@@ -730,5 +797,29 @@ button:disabled {
   button, input, select {
     font-size: 0.8rem;
     padding: 6px;
+  }
+  .card-content h2 {
+    font-size: 1.1rem;
+  }
+  .card-front {
+    gap: 150px;
+  }
+  #role-info {
+    font-size: 0.8rem;
+  }
+  #role-info div {
+    margin-bottom: 100px;
+  }
+  #role-info div:last-child {
+    margin-bottom: 0;
+  }
+  #roles-menu-button {
+    width: 45px;
+    height: 45px;
+    font-size: 1.3rem;
+    line-height: 45px;
+  }
+  #roles-menu {
+    top: 65px;
   }
 }

@@ -297,32 +297,32 @@ function assignRoles(manuallyAssignedRoles) {
     }
   });
 
-  // Znajdź rolę "Mafia" i jej count
-  const mafiaRole = rolesData.find(role => role.name === 'Mafia');
+  // Znajdź rolę "Mafiozo" i jej count
+  const mafiaRole = rolesData.find(role => role.name === 'Mafiozo');
   const mafiaCount = mafiaRole ? parseInt(mafiaRole.count) || 0 : 0;
-  const manuallyAssignedMafia = manuallyAssignedRoles.filter(assignment => assignment.role === 'Mafia').length;
+  const manuallyAssignedMafia = manuallyAssignedRoles.filter(assignment => assignment.role === 'Mafiozo').length;
   let remainingMafiaToAssign = Math.max(0, mafiaCount - manuallyAssignedMafia);
 
-  // Przydziel Mafię losowym graczom
+  // Przydziel Mafiozo losowym graczom
   let availablePlayerIds = Object.keys(gameState.players).filter(id => !gameState.players[id].manuallyAssigned);
   availablePlayerIds = availablePlayerIds.sort(() => Math.random() - 0.5);
 
-  // Sprawdź, czy mamy dość graczy
+  // Ogranicz Mafiozo do dostępnych graczy
   if (remainingMafiaToAssign > availablePlayerIds.length) {
     remainingMafiaToAssign = availablePlayerIds.length;
   }
 
-  // Przydziel Mafię
+  // Przydziel Mafiozo
   for (let i = 0; i < remainingMafiaToAssign; i++) {
     const playerId = availablePlayerIds.shift();
-    gameState.players[playerId].role = 'Mafia';
+    gameState.players[playerId].role = 'Mafiozo';
     gameState.players[playerId].manuallyAssigned = false;
   }
 
-  // Zbierz pozostałe role (bez "Mafia")
+  // Zbierz pozostałe role (bez "Mafiozo")
   const otherRoles = [];
   rolesData.forEach((role) => {
-    if (role.name !== 'Mafia' && role.count > 0) {
+    if (role.name !== 'Mafiozo' && role.count > 0) {
       for (let i = 0; i < role.count; i++) {
         otherRoles.push(role.name);
       }
@@ -333,6 +333,7 @@ function assignRoles(manuallyAssignedRoles) {
   const shuffledOtherRoles = otherRoles.sort(() => Math.random() - 0.5);
 
   // Przydziel pozostałe role graczom bez roli
+  availablePlayerIds = Object.keys(gameState.players).filter(id => !gameState.players[id].role);
   availablePlayerIds.forEach((playerId, index) => {
     gameState.players[playerId].role = shuffledOtherRoles[index] || 'Mieszkaniec';
     gameState.players[playerId].additionalRole = null;

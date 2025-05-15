@@ -2,7 +2,7 @@
   "roles": [
     {
       "name": "Mafiozo",
-      "count": 1,
+      "count": 2,
       "description": "Eliminuje graczy w nocy.",
       "alignment": "bad",
       "choose": "number"
@@ -16,21 +16,21 @@
     },
     {
       "name": "Detektyw",
-      "count": 0,
+      "count": 1,
       "description": "Sprawdza rolę gracza.",
       "alignment": "good",
       "choose": "bool"
     },
     {
       "name": "Aliant",
-      "count": 0,
+      "count": 1,
       "description": "Sprawdza rolę gracza.",
       "alignment": "good",
       "choose": "bool"
     },
     {
       "name": "Debil",
-      "count": 0,
+      "count": 1,
       "description": "Sprawdza rolę gracza.",
       "alignment": "good",
       "choose": "bool"

@@ -76,11 +76,6 @@
       <button id="roll-dice-button" onclick="rollDice()">Rzuć kostką</button>
       <button id="back-from-dice-button" onclick="backToHostFromDice()">Powrót</button>
     </div>
-    <div id="player-view" class="section" style="display: none;">
-      <button id="role-button" data-initialized="false">Pokaż rolę</button>
-      <div id="role-info"></div>
-      <div id="player-event-message"></div>
-    </div>
     <div id="voting-view" class="section" style="display: none;">
       <h2>Głosowanie</h2>
       <div id="voting-timer"></div>
@@ -89,12 +84,27 @@
       <button id="finish-voting-button" onclick="finishVoting()" style="display: none;">Powrót</button>
     </div>
     <div id="error-message" class="error-message" style="display: none;"></div>
-    <button id="roles-menu-button" onclick="toggleRolesMenu()" style="display: none;">📋</button>
+  </div>
+  <div id="player-view" style="display: none;">
+    <button id="roles-menu-button" onclick="toggleRolesMenu()" style="display: none;">ℹ️</button>
     <div id="roles-menu" style="display: none;">
       <h3>Role</h3>
       <ul id="roles-list"></ul>
       <h3>Dodatkowe role</h3>
       <ul id="additional-roles-list"></ul>
+    </div>
+    <div class="card" id="role-card">
+      <div class="card-front">
+        <div class="card-content">
+          <h2>Odsłoń swoją rolę</h2>
+          <div id="player-event-message"></div>
+        </div>
+      </div>
+      <div class="card-back">
+        <div class="card-content">
+          <div id="role-info"></div>
+        </div>
+      </div>
     </div>
   </div>
   <script src="script.js"></script>

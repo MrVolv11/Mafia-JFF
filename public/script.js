@@ -1,4 +1,3 @@
-// script.js
 //let ws = new WebSocket('ws://192.168.0.163:3000');
 let protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
 let host = window.location.host;
@@ -11,6 +10,7 @@ let gameState = null;
 let timerInterval = null;
 let currentView = 'join';
 let currentModalPlayerId = null;
+
 
 ws.onopen = () => {
   ws.send(JSON.stringify({ type: 'init', playerId }));
@@ -238,19 +238,39 @@ function backToHostFromDice() {
   document.getElementById('dice-result').innerHTML = '';
 }
 
+function setupCardInteraction() {
+  const card = document.getElementById('role-card');
+  card.onmousedown = (e) => {
+    e.preventDefault();
+    if (!card.classList.contains('disabled')) showRole();
+  };
+  card.onmouseup = (e) => {
+    e.preventDefault();
+    if (!card.classList.contains('disabled')) hideRole();
+  };
+  card.ontouchstart = (e) => {
+    e.preventDefault();
+    if (!card.classList.contains('disabled')) showRole();
+  };
+  card.ontouchend = (e) => {
+    e.preventDefault();
+    if (!card.classList.contains('disabled')) hideRole();
+  };
+}
+
 function showRole() {
+  const card = document.getElementById('role-card');
   const roleInfo = document.getElementById('role-info');
-  const playerEventMessage = document.getElementById('player-event-message');
   if (!gameState || !gameState.started || !playerName || !gameState.players[playerId]) {
     roleInfo.innerHTML = 'Brak roli lub gry!';
     roleInfo.style.display = 'block';
-    playerEventMessage.style.display = 'none';
+    card.classList.add('flipped');
     return;
   }
   if (!gameState.players[playerId].alive) {
     roleInfo.innerHTML = 'Jesteś martwy!';
     roleInfo.style.display = 'block';
-    playerEventMessage.style.display = 'none';
+    card.classList.add('flipped');
     return;
   }
   const role = gameState.players[playerId].role || 'Mieszkaniec';
@@ -259,40 +279,16 @@ function showRole() {
   let text = `<div><strong>Rola: ${role}</strong><br><span>${roleData.description}</span></div>`;
   if (additionalRole) {
     const additionalRoleData = gameState.additionalRoles.find(r => r.name === additionalRole) || { description: 'Brak opisu.' };
-    text += `<div style="margin-top: 10px;"><strong>Dodatkowa rola: ${additionalRole}</strong><br><span>${additionalRoleData.description}</span></div>`;
+    text += `<div><strong>Dodatkowa rola: ${additionalRole}</strong><br><span>${additionalRoleData.description}</span></div>`;
   }
   roleInfo.innerHTML = text;
   roleInfo.style.display = 'block';
-  playerEventMessage.style.display = 'none';
+  card.classList.add('flipped');
 }
 
 function hideRole() {
-  const roleInfo = document.getElementById('role-info');
-  const playerEventMessage = document.getElementById('player-event-message');
-  roleInfo.style.display = 'none';
-  if (gameState?.currentEvent) {
-    playerEventMessage.style.display = 'block';
-  }
-}
-
-function setupRoleButton() {
-  const roleButton = document.getElementById('role-button');
-  roleButton.onmousedown = (e) => {
-    e.preventDefault();
-    if (!roleButton.disabled) showRole();
-  };
-  roleButton.onmouseup = (e) => {
-    e.preventDefault();
-    if (!roleButton.disabled) hideRole();
-  };
-  roleButton.ontouchstart = (e) => {
-    e.preventDefault();
-    if (!roleButton.disabled) showRole();
-  };
-  roleButton.ontouchend = (e) => {
-    e.preventDefault();
-    if (!roleButton.disabled) hideRole();
-  };
+  const card = document.getElementById('role-card');
+  card.classList.remove('flipped');
 }
 
 function toggleRolesMenu() {
@@ -312,7 +308,6 @@ function openPlayerActionsModal(playerId) {
   const modalAdditionalRole = document.getElementById('modal-additional-role');
   const modalKillButton = document.getElementById('modal-kill-button');
   const modalReviveButton = document.getElementById('modal-revive-button');
-
   modalPlayerName.innerHTML = `<span class="player-name">${player.name}</span>`;
   modalPlayerInfo.innerHTML = `
     <div>Gracz: <span class="player-name">${player.name}</span></div>
@@ -351,9 +346,7 @@ function updatePlayerEventMessage() {
     const { name, description } = gameState.currentEvent;
     const text = `<div><strong>${name}</strong><br><span>${description.replace(/(Gracz \w+)/g, '<span class="player-name">$1</span>')}</span></div>`;
     playerEventMessage.innerHTML = text;
-    if (document.getElementById('role-info').style.display !== 'block') {
-      playerEventMessage.style.display = 'block';
-    }
+    playerEventMessage.style.display = 'block';
   } else {
     playerEventMessage.innerHTML = '';
     playerEventMessage.style.display = 'none';
@@ -441,6 +434,7 @@ function updateTimer() {
 }
 
 function updateUI() {
+  const container = document.querySelector('.container');
   const joinSection = document.getElementById('join-section');
   const hostButton = document.getElementById('host-button');
   const hostControls = document.getElementById('host-controls');
@@ -461,8 +455,11 @@ function updateUI() {
   const randomEventsView = document.getElementById('random-events-view');
   const diceRollView = document.getElementById('dice-roll-view');
   const rolesMenuButton = document.getElementById('roles-menu-button');
+  const roleCard = document.getElementById('role-card');
 
   if (currentView !== 'random-events-view' && currentView !== 'dice-roll-view') {
+    container.style.display = 'block';
+    playerView.classList.remove('active');
     joinSection.style.display = 'none';
     hostButton.style.display = 'none';
     hostControls.style.display = 'none';
@@ -480,6 +477,7 @@ function updateUI() {
 
   if (!gameState) {
     currentView = 'join';
+    container.style.display = 'block';
     joinSection.style.display = 'flex';
     hostButton.style.display = 'block';
     lobbyTitle.style.display = 'block';
@@ -493,6 +491,7 @@ function updateUI() {
 
   if (gameState.voting) {
     currentView = 'voting';
+    container.style.display = 'block';
     votingView.style.display = 'block';
     if (gameState.voting.showResults) {
       clearInterval(timerInterval);
@@ -544,6 +543,7 @@ function updateUI() {
     finishVotingButton.style.display = isHost && gameState.voting.showResults ? 'block' : 'none';
   } else if (isHost && currentView !== 'random-events-view' && currentView !== 'dice-roll-view') {
     currentView = 'host-controls';
+    container.style.display = 'block';
     hostControls.style.display = 'block';
     hostActions.style.display = gameState.started ? 'none' : 'block';
     voteControls.style.display = gameState.started ? 'block' : 'none';
@@ -583,6 +583,7 @@ function updateUI() {
       : '<div>Brak graczy</div>';
   } else if (!playerName && !gameState.started) {
     currentView = 'join';
+    container.style.display = 'block';
     joinSection.style.display = 'flex';
     hostButton.style.display = gameState.host ? 'none' : 'block';
     lobbyTitle.style.display = 'block';
@@ -595,6 +596,7 @@ function updateUI() {
       : '';
   } else if (playerName && !gameState.started) {
     currentView = 'lobby';
+    container.style.display = 'block';
     lobbyTitle.style.display = 'block';
     playersTitle.style.display = 'block';
     playerList.style.display = 'block';
@@ -605,16 +607,18 @@ function updateUI() {
       : '';
   } else if (gameState.started && playerName) {
     currentView = 'player-view';
+    container.style.display = 'none';
     playerView.style.display = 'block';
+    playerView.classList.add('active');
     rolesMenuButton.style.display = 'block';
     if (!gameState.players[playerId]?.alive) {
+      roleCard.classList.add('disabled');
       document.getElementById('role-info').innerHTML = 'Jesteś martwy!';
       document.getElementById('role-info').style.display = 'block';
-      document.getElementById('role-button').disabled = true;
       document.getElementById('roles-menu').style.display = 'none';
     } else {
+      roleCard.classList.remove('disabled');
       document.getElementById('role-info').style.display = 'none';
-      document.getElementById('role-button').disabled = false;
     }
     rolesList.innerHTML = gameState.roles
       .map(role => `<li><strong>${role.name}</strong>: ${role.description}</li>`)
@@ -631,5 +635,5 @@ function updateUI() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  setupRoleButton();
+  setupCardInteraction();
 });
