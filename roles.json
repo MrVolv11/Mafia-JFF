@@ -2,36 +2,134 @@
   "roles": [
     {
       "name": "Mafiozo",
-      "count": 2,
-      "description": "Eliminuje graczy w nocy.",
+      "count": 1,
+      "description": "Eliminuje graczy w trakcie nocy.",
       "alignment": "bad",
       "choose": "number"
     },
     {
+      "name": "Szaleniec",
+      "count": 1,
+      "description": "Nie zna mafii, ale wygrywa zamiast niej, jeśli ta osiągnie zwycięstwo.",
+      "alignment": "bad",
+      "choose": "bool"
+    },
+    {
+      "name": "Terrorysta",
+      "count": 1,
+      "description": "Umierając, zabiera ze sobą osobę wybraną przez rzut kością (Licząc w prawo). Wygrywa jeżeli poza nim zostanie tylko jedna osoba.",
+      "alignment": "neutral",
+      "choose": "bool"
+    },
+    {
+      "name": "Wilkołak",
+      "count": 1,
+      "description": "Gra samemu. Co drugą noc zamienia się w wilkołaka i zabija. Chce zostać ostatnim żywym. (Prowadzący decyduje od której nocy zaczyna zabijać.)",
+      "alignment": "neutral",
+      "choose": "bool"
+    },
+    {
+      "name": "Mimik",
+      "count": 1,
+      "description": "Raz w grze, podczas dnia może przejąć na stałe rolę zmarłego gracza.",
+      "alignment": "neutral",
+      "choose": "bool"
+    },
+    {
+      "name": "Błazen",
+      "count": 1,
+      "description": "Gra samemu. Wygrywa grę, jeżeli zostanie wygłosowany.",
+      "alignment": "neutral",
+      "choose": "bool"
+    },
+    {
+      "name": "Egzekutor",
+      "count": 1,
+      "description": "Na początku gry losowo dostaje cel. Wygrywa, jeśli uda mu się doprowadzić do tego, że jego cel zostanie wygłosowany. Jeśli cel zginie inaczej, egzekutor staje sie obywatelem.",
+      "alignment": "neutral",
+      "choose": "bool"
+    },
+    {
       "name": "Lekarz",
       "count": 1,
-      "description": "Chroni jednego gracza w nocy.",
+      "description": "Ochrania wskazaną osobę przed śmiercią w trakcie nocy.",
       "alignment": "good",
       "choose": "bool"
     },
     {
       "name": "Detektyw",
-      "count": 1,
-      "description": "Sprawdza rolę gracza.",
+      "count": 0,
+      "description": "W trakcie nocy sprawdza rolę danej osoby. 👍 - Osoba jest dobra, 👎 - Osoba działa przeciw obywatelom.",
       "alignment": "good",
       "choose": "bool"
     },
     {
-      "name": "Aliant",
+      "name": "Barman",
       "count": 1,
-      "description": "Sprawdza rolę gracza.",
+      "description": "W nocy upija wybraną osobę. Cel upitego gracza (bądź całej mafii jeżeli upity jest mafiozo) zmienia się na osobę po prawej od celu.",
       "alignment": "good",
       "choose": "bool"
     },
     {
-      "name": "Debil",
+      "name": "Nekromanta",
+      "count": 0,
+      "description": "Raz w grze, podczas nocy, po podniesieniu dłoni do góry, może poświęcić swoje życie i wskrzesić osobę zabitą podczas ostatniej nocy.",
+      "alignment": "good",
+      "choose": "bool"
+    },
+    {
+      "name": "Prokurator",
       "count": 1,
-      "description": "Sprawdza rolę gracza.",
+      "description": "Raz w grze może przerwać obrady i samemu kogoś wygłosować. Jeśli gracz był dobry – prokurator ginie, a wygłosowany wraca do gry.",
+      "alignment": "good",
+      "choose": "bool"
+    },
+    {
+      "name": "Adwokat",
+      "count": 1,
+      "description": "Raz w grze, podczas nocy, po pokazaniu dłonią znaku viktorii i wywołaniu, może ochronić wybraną osobę przed wygnaniem.",
+      "alignment": "good",
+      "choose": "bool"
+    },
+    {
+      "name": "Sędzia",
+      "count": 1,
+      "description": "Posiada trzy dodatkowe głosy. Może użyć ich dowolnie – przed lub po głosowaniu, razem lub osobno (np. jeden przed, dwa po) lub każde w innym dniu.",
+      "alignment": "good",
+      "choose": "bool"
+    },
+    {
+      "name": "Koroner",
+      "count": 1,
+      "description": "Każdej nocy wybiera jedno ciało do zbadania i dowiaduje się jaką rolę miała zmarła osoba.",
+      "alignment": "good",
+      "choose": "bool"
+    },
+    {
+      "name": "Kurtyzana",
+      "count": 1,
+      "description": "Co noc może (ale nie musi) wskazać osobę, z która chce się przespać. Dowiaduje się przy tym roli wybranego gracza. - Jeżeli wybrana osoba jest członkiem mafii, istnieje prawdopodobieństwo 50%, że do niej dołączy. - W przypadku wybrania terrorysty, obydwu graczy natychmiastowo ginie. - Gdy wybierze wilkołaka, równiez umiera.",
+      "alignment": "good",
+      "choose": "bool"
+    },
+    {
+      "name": "Bohater",
+      "count": 1,
+      "description": "Raz w grze, podczas dnia może zabić dowolną osobę, ale chwile później, po głosowaniu sam umiera.",
+      "alignment": "good",
+      "choose": "bool"
+    },
+    {
+      "name": "Śluszarz",
+      "count": 1,
+      "description": "Co noc wskazuje osobę, której psuje zamek w drzwiach. Osoba ta nie pojawia się podczas dnia na naradach i nie może głosować.",
+      "alignment": "good",
+      "choose": "bool"
+    },
+    {
+      "name": "Chronomanta",
+      "count": 1,
+      "description": "Może raz na grę, podczas dnia użyć swojej umiejętności i cofnąć czas o jedną rundę (obecny dzień i noc). Wszystkie akcje, zabójstwa i głosowania się cofają. Wystarczy, że wypowie głośno zaklęcie „Cofam czas! Kurwa.”.",
       "alignment": "good",
       "choose": "bool"
     }

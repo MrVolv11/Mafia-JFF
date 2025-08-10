@@ -6,7 +6,6 @@ const fs = require('fs');
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
-const port = process.env.PORT || 3000;
 
 app.use(express.static('public'));
 
@@ -16,17 +15,23 @@ let gameState = {
   started: false,
   voting: null,
   currentEvent: null,
-  events: []
+  events: [],
+  roles: [],
+  additionalRoles: []
 };
 
 let rolesData;
 let additionalRolesData;
 let randomEventsData;
+let timerInterval = null; // Globalna zmienna do przechowywania interwału timera
+
 try {
   rolesData = JSON.parse(fs.readFileSync('roles.json')).roles;
   additionalRolesData = JSON.parse(fs.readFileSync('additional_roles.json')).additional_roles;
   randomEventsData = JSON.parse(fs.readFileSync('random_events.json'));
   gameState.events = randomEventsData;
+  gameState.roles = rolesData;
+  gameState.additionalRoles = additionalRolesData;
 } catch (error) {
   console.error('Błąd podczas odczytu JSON:', error.message);
   process.exit(1);
@@ -120,6 +125,7 @@ wss.on('connection', (ws) => {
                 alignment: role.alignment,
                 choose: role.choose || 'number'
               }));
+              gameState.roles = rolesData;
               try {
                 fs.writeFileSync('roles.json', JSON.stringify({ roles: rolesData }, null, 2));
               } catch (error) {
@@ -142,18 +148,28 @@ wss.on('connection', (ws) => {
           if (playerId === gameState.host && gameState.started && !gameState.voting) {
             gameState.voting = {
               duration: data.duration,
-              endTime: null,
-              serverTime: null,
               votes: {},
-              showResults: false
+              showResults: false,
+              timeLeft: Math.floor(data.duration / 1000) // Inicjalizacja timeLeft
             };
-            setTimeout(() => {
-              gameState.voting.serverTime = Date.now();
-              gameState.voting.endTime = gameState.voting.serverTime + data.duration;
-              broadcastGameState();
-              broadcastTimerStart(gameState.voting.serverTime);
-            }, 1000);
+            const startTime = Date.now();
+            const endTime = startTime + data.duration;
+            gameState.voting.endTime = endTime;
             broadcastGameState();
+            // Wyczyść poprzedni interwał, jeśli istnieje
+            if (timerInterval) clearInterval(timerInterval);
+            // Uruchom nowy interwał wysyłający timeLeft co sekundę
+            timerInterval = setInterval(() => {
+              const timeLeft = Math.max(0, Math.floor((endTime - Date.now()) / 1000));
+              gameState.voting.timeLeft = timeLeft; // Aktualizuj timeLeft w gameState
+              broadcastTimerUpdate(timeLeft);
+              if (timeLeft <= 0 && !gameState.voting.showResults) {
+                gameState.voting.showResults = true;
+                broadcastGameState();
+                clearInterval(timerInterval);
+                timerInterval = null;
+              }
+            }, 1000);
           }
           break;
 
@@ -167,6 +183,10 @@ wss.on('connection', (ws) => {
         case 'endVoting':
           if (playerId === gameState.host && gameState.voting) {
             gameState.voting.showResults = true;
+            if (timerInterval) {
+              clearInterval(timerInterval);
+              timerInterval = null;
+            }
             broadcastGameState();
           }
           break;
@@ -174,6 +194,10 @@ wss.on('connection', (ws) => {
         case 'finishVoting':
           if (playerId === gameState.host && gameState.voting) {
             gameState.voting = null;
+            if (timerInterval) {
+              clearInterval(timerInterval);
+              timerInterval = null;
+            }
             broadcastGameState();
           }
           break;
@@ -194,8 +218,8 @@ wss.on('connection', (ws) => {
 
         case 'changeRole':
           if (playerId === gameState.host && gameState.players[data.targetId]) {
-            gameState.players[data.targetId].role = data.newRole || null;
-            gameState.players[data.targetId].manuallyAssigned = data.newRole && data.newRole !== 'Brak';
+            gameState.players[data.targetId].role = data.newRole || 'Mieszkaniec';
+            gameState.players[data.targetId].manuallyAssigned = data.newRole && data.newRole !== 'Mieszkaniec';
             broadcastGameState();
           }
           break;
@@ -217,6 +241,7 @@ wss.on('connection', (ws) => {
                 alignment: role.alignment,
                 choose: role.choose || 'number'
               }));
+              gameState.roles = rolesData;
               fs.writeFileSync('roles.json', JSON.stringify({ roles: rolesData }, null, 2));
               broadcastGameState();
             } catch (error) {
@@ -255,6 +280,10 @@ wss.on('connection', (ws) => {
 
         case 'reset':
           if (playerId === gameState.host) {
+            if (timerInterval) {
+              clearInterval(timerInterval);
+              timerInterval = null;
+            }
             resetGame();
             broadcastReset();
           }
@@ -281,14 +310,12 @@ wss.on('connection', (ws) => {
 });
 
 function assignRoles(manuallyAssignedRoles) {
-  // Resetuj role i manuallyAssigned dla wszystkich graczy
   Object.keys(gameState.players).forEach(playerId => {
     gameState.players[playerId].role = null;
     gameState.players[playerId].additionalRole = null;
     gameState.players[playerId].manuallyAssigned = false;
   });
 
-  // Przydziel ręczne role
   manuallyAssignedRoles.forEach(assignment => {
     if (gameState.players[assignment.playerId]) {
       gameState.players[assignment.playerId].role = assignment.role;
@@ -297,29 +324,24 @@ function assignRoles(manuallyAssignedRoles) {
     }
   });
 
-  // Znajdź rolę "Mafiozo" i jej count
   const mafiaRole = rolesData.find(role => role.name === 'Mafiozo');
   const mafiaCount = mafiaRole ? parseInt(mafiaRole.count) || 0 : 0;
   const manuallyAssignedMafia = manuallyAssignedRoles.filter(assignment => assignment.role === 'Mafiozo').length;
   let remainingMafiaToAssign = Math.max(0, mafiaCount - manuallyAssignedMafia);
 
-  // Przydziel Mafiozo losowym graczom
   let availablePlayerIds = Object.keys(gameState.players).filter(id => !gameState.players[id].manuallyAssigned);
   availablePlayerIds = availablePlayerIds.sort(() => Math.random() - 0.5);
 
-  // Ogranicz Mafiozo do dostępnych graczy
   if (remainingMafiaToAssign > availablePlayerIds.length) {
     remainingMafiaToAssign = availablePlayerIds.length;
   }
 
-  // Przydziel Mafiozo
   for (let i = 0; i < remainingMafiaToAssign; i++) {
     const playerId = availablePlayerIds.shift();
     gameState.players[playerId].role = 'Mafiozo';
     gameState.players[playerId].manuallyAssigned = false;
   }
 
-  // Zbierz pozostałe role (bez "Mafiozo")
   const otherRoles = [];
   rolesData.forEach((role) => {
     if (role.name !== 'Mafiozo' && role.count > 0) {
@@ -329,15 +351,75 @@ function assignRoles(manuallyAssignedRoles) {
     }
   });
 
-  // Przemieszaj pozostałe role
-  const shuffledOtherRoles = otherRoles.sort(() => Math.random() - 0.5);
+  otherRoles.sort(() => Math.random() - 0.5);
 
-  // Przydziel pozostałe role graczom bez roli
   availablePlayerIds = Object.keys(gameState.players).filter(id => !gameState.players[id].role);
-  availablePlayerIds.forEach((playerId, index) => {
-    gameState.players[playerId].role = shuffledOtherRoles[index] || 'Mieszkaniec';
-    gameState.players[playerId].additionalRole = null;
+  availablePlayerIds = availablePlayerIds.sort(() => Math.random() - 0.5);
+
+  const rolesToAssign = Math.min(otherRoles.length, availablePlayerIds.length);
+  for (let i = 0; i < rolesToAssign; i++) {
+    const playerId = availablePlayerIds[i];
+    gameState.players[playerId].role = otherRoles[i];
     gameState.players[playerId].manuallyAssigned = false;
+  }
+
+  availablePlayerIds.slice(rolesToAssign).forEach(playerId => {
+    gameState.players[playerId].role = 'Mieszkaniec';
+    gameState.players[playerId].manuallyAssigned = false;
+  });
+
+  const additionalRoles = [];
+  additionalRolesData.forEach((role) => {
+    if (role.count > 0) {
+      for (let i = 0; i < role.count; i++) {
+        additionalRoles.push(role.name);
+      }
+    }
+  });
+
+  additionalRoles.sort(() => Math.random() - 0.5);
+
+  const additionalAvailablePlayerIds = Object.keys(gameState.players).filter(id => !gameState.players[id].additionalRole);
+  const additionalRolesToAssign = Math.min(additionalRoles.length, additionalAvailablePlayerIds.length);
+  for (let i = 0; i < additionalRolesToAssign; i++) {
+    const playerId = additionalAvailablePlayerIds[i];
+    gameState.players[playerId].additionalRole = additionalRoles[i];
+  }
+}
+
+function broadcastGameState() {
+  const stateToSend = {
+    ...gameState,
+    roles: rolesData,
+    additionalRoles: additionalRolesData,
+    events: randomEventsData
+  };
+  wss.clients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify({
+        type: 'update',
+        state: stateToSend
+      }));
+    }
+  });
+}
+
+function broadcastTimerUpdate(timeLeft) {
+  wss.clients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify({
+        type: 'updateTimer',
+        timeLeft
+      }));
+    }
+  });
+}
+
+function broadcastReset() {
+  wss.clients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify({ type: 'reset' }));
+    }
   });
 }
 
@@ -348,55 +430,12 @@ function resetGame() {
     started: false,
     voting: null,
     currentEvent: null,
-    events: randomEventsData
-  };
-}
-
-function broadcastGameState() {
-  const state = {
-    host: gameState.host,
-    players: Object.keys(gameState.players).reduce((acc, playerId) => {
-      acc[playerId] = {
-        name: gameState.players[playerId].name,
-        role: gameState.players[playerId].role,
-        additionalRole: gameState.players[playerId].additionalRole,
-        alive: gameState.players[playerId].alive,
-        connected: gameState.players[playerId].connected
-      };
-      return acc;
-    }, {}),
-    started: gameState.started,
+    events: randomEventsData,
     roles: rolesData,
-    additionalRoles: additionalRolesData,
-    voting: gameState.voting,
-    currentEvent: gameState.currentEvent,
-    events: gameState.events
+    additionalRoles: additionalRolesData
   };
-
-  wss.clients.forEach((client) => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(JSON.stringify({ type: 'update', state }));
-    }
-  });
-}
-
-function broadcastTimerStart(serverTime) {
-  wss.clients.forEach((client) => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(JSON.stringify({ type: 'startTimer', serverTime }));
-    }
-  });
-}
-
-function broadcastReset() {
-  wss.clients.forEach((client) => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(JSON.stringify({ type: 'reset' }));
-    }
-  });
-  broadcastGameState();
 }
 
 server.listen(3000, () => {
-  console.log('Server running on http://localhost:3000');
+  console.log('Server running on port 3000');
 });

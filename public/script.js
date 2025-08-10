@@ -1,16 +1,14 @@
-//let ws = new WebSocket('ws://192.168.0.163:3000');
-let protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-let host = window.location.host;
-let ws = new WebSocket(`${protocol}://${host}`);
+let ws = new WebSocket('ws://192.168.0.163:3000');
+// let protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+// let host = window.location.host;
+// let ws = new WebSocket(`${protocol}://${host}`);
 let playerId = localStorage.getItem('playerId') || Math.random().toString(36).substring(2, 15);
 localStorage.setItem('playerId', playerId);
 let playerName = null;
 let isHost = false;
 let gameState = null;
-let timerInterval = null;
 let currentView = 'join';
 let currentModalPlayerId = null;
-
 
 ws.onopen = () => {
   ws.send(JSON.stringify({ type: 'init', playerId }));
@@ -32,8 +30,6 @@ ws.onmessage = (event) => {
     isHost = false;
     gameState = null;
     currentView = 'join';
-    clearInterval(timerInterval);
-    timerInterval = null;
     updateUI();
   } else if (data.type === 'error') {
     const errorMessageDiv = document.getElementById('error-message');
@@ -42,18 +38,31 @@ ws.onmessage = (event) => {
       <button onclick="document.getElementById('error-message').style.display='none'">OK</button>
     `;
     errorMessageDiv.style.display = 'flex';
-  } else if (data.type === 'startTimer') {
-    gameState.voting = {
-      ...gameState.voting,
-      serverTime: data.serverTime,
-      endTime: data.serverTime + gameState.voting.duration
-    };
-    clearInterval(timerInterval);
-    timerInterval = setInterval(updateTimer, 1000);
-    updateTimer();
-    updateUI();
+  } else if (data.type === 'updateTimer') {
+    if (gameState && gameState.voting) {
+      gameState.voting.timeLeft = data.timeLeft;
+      updateTimer();
+      updateUI();
+    }
   }
 };
+
+function showHostPinModal() {
+  document.getElementById('host-pin-modal').style.display = 'flex';
+  document.getElementById('host-pin-input').value = '';
+}
+
+function verifyHostPin() {
+  const pinInput = document.getElementById('host-pin-input').value;
+  if (pinInput === '8844') {
+    hostGame();
+    closeHostPinModal();
+  }
+}
+
+function closeHostPinModal() {
+  document.getElementById('host-pin-modal').style.display = 'none';
+}
 
 function joinGame() {
   if (isHost) return;
@@ -84,7 +93,7 @@ function assignRoles() {
     };
   });
   const manuallyAssignedRoles = Object.keys(gameState.players)
-    .filter(id => gameState.players[id].role && gameState.players[id].role !== 'Brak' && gameState.players[id].manuallyAssigned)
+    .filter(id => gameState.players[id].role && gameState.players[id].manuallyAssigned)
     .map(id => ({
       playerId: id,
       role: gameState.players[id].role,
@@ -143,7 +152,7 @@ function revivePlayer(targetId) {
 
 function changeRole(targetId, newRole) {
   if (!gameState || playerId !== gameState.host) return;
-  ws.send(JSON.stringify({ type: 'changeRole', playerId, targetId, newRole: newRole || 'Brak' }));
+  ws.send(JSON.stringify({ type: 'changeRole', playerId, targetId, newRole: newRole || 'Mieszkaniec' }));
   closePlayerActionsModal();
 }
 
@@ -199,7 +208,7 @@ function selectEvent(eventName) {
 function loadEventsList() {
   const eventsList = document.getElementById('events-list');
   if (!eventsList || !gameState?.events) return;
-  eventsList.innerHTML = '<option value="">Wybierz wydarzenie</option>' + 
+  eventsList.innerHTML = '<option value="">Wybierz wydarzenie</option>' +
     gameState.events.map(event => `<option value="${event.name}">${event.name}</option>`).join('');
 }
 
@@ -275,8 +284,8 @@ function showRole() {
   }
   const role = gameState.players[playerId].role || 'Mieszkaniec';
   const additionalRole = gameState.players[playerId].additionalRole;
-  const roleData = gameState.roles.find(r => r.name === role) || { description: 'Zwykły mieszkaniec bez zdolności.' };
-  let text = `<div><strong>Rola: ${role}</strong><br><span>${roleData.description}</span></div>`;
+  const roleData = gameState.roles.find(r => r.name === role) || { description: 'Szary obywatel, jeden z wielu, którzy chcą po prostu spokojnie żyć...' };
+  let text = `<div><strong>${role}</strong><br><span>${roleData.description}</span></div>`;
   if (additionalRole) {
     const additionalRoleData = gameState.additionalRoles.find(r => r.name === additionalRole) || { description: 'Brak opisu.' };
     text += `<div><strong>Dodatkowa rola: ${additionalRole}</strong><br><span>${additionalRoleData.description}</span></div>`;
@@ -294,7 +303,63 @@ function hideRole() {
 function toggleRolesMenu() {
   if (!gameState || !gameState.started) return;
   const rolesMenu = document.getElementById('roles-menu');
-  rolesMenu.style.display = rolesMenu.style.display === 'block' ? 'none' : 'block';
+  const roleDescriptionModal = document.getElementById('role-description-modal');
+  const isMenuVisible = rolesMenu.style.display === 'block';
+  
+  if (isMenuVisible) {
+    rolesMenu.style.display = 'none';
+    roleDescriptionModal.style.display = 'none';
+  } else {
+    rolesMenu.style.display = 'block';
+  }
+}
+
+function toggleHostRolesMenu() {
+  if (!gameState || playerId !== gameState.host) return;
+  const rolesMenu = document.getElementById('host-roles-menu');
+  const roleDescriptionModal = document.getElementById('host-role-description-modal');
+  const isMenuVisible = rolesMenu.style.display === 'block';
+  
+  if (isMenuVisible) {
+    rolesMenu.style.display = 'none';
+    roleDescriptionModal.style.display = 'none';
+  } else {
+    rolesMenu.style.display = 'block';
+  }
+}
+
+function showRoleDescription(roleName, isAdditional) {
+  if (!gameState || !gameState.started) return;
+  const modal = document.getElementById('role-description-modal');
+  const title = document.getElementById('role-description-title');
+  const text = document.getElementById('role-description-text');
+  const roleData = isAdditional
+    ? gameState.additionalRoles.find(r => r.name === roleName)
+    : gameState.roles.find(r => r.name === roleName);
+  title.textContent = roleName;
+  text.textContent = roleData ? roleData.description : 'Brak opisu.';
+  modal.style.display = 'flex';
+}
+
+function showHostRoleDescription(roleName, isAdditional) {
+  if (!gameState || playerId !== gameState.host) return;
+  const modal = document.getElementById('host-role-description-modal');
+  const title = document.getElementById('host-role-description-title');
+  const text = document.getElementById('host-role-description-text');
+  const roleData = isAdditional
+    ? gameState.additionalRoles.find(r => r.name === roleName)
+    : gameState.roles.find(r => r.name === roleName);
+  title.textContent = roleName;
+  text.textContent = roleData ? roleData.description : 'Brak opisu.';
+  modal.style.display = 'flex';
+}
+
+function closeRoleDescriptionModal() {
+  document.getElementById('role-description-modal').style.display = 'none';
+}
+
+function closeHostRoleDescriptionModal() {
+  document.getElementById('host-role-description-modal').style.display = 'none';
 }
 
 function openPlayerActionsModal(playerId) {
@@ -320,7 +385,6 @@ function openPlayerActionsModal(playerId) {
     <option value="">Zmień rolę</option>
     ${gameState.roles.map(role => `<option value="${role.name}" ${player.role === role.name ? 'selected' : ''}>${role.name}</option>`).join('')}
     <option value="Mieszkaniec" ${player.role === 'Mieszkaniec' ? 'selected' : ''}>Mieszkaniec</option>
-    <option value="Brak" ${player.role === 'Brak' || !player.role ? 'selected' : ''}>Brak</option>
   `;
   modalAdditionalRole.innerHTML = `
     <option value="">${player.additionalRole ? 'Usuń' : 'Wybierz'}</option>
@@ -387,9 +451,9 @@ function getPlayerRowClass(player) {
   const additionalRoleAlignment = player.additionalRole
     ? gameState.additionalRoles.find(r => r.name === player.additionalRole)?.alignment
     : null;
-  if (mainRoleAlignment === 'bad') return 'bad';
-  if (additionalRoleAlignment === 'bad' && mainRoleAlignment === 'good') return 'mixed';
-  return mainRoleAlignment === 'good' ? 'good' : 'bad';
+  if (mainRoleAlignment === 'bad' || additionalRoleAlignment === 'bad') return 'bad';
+  if (mainRoleAlignment === 'neutral' || additionalRoleAlignment === 'neutral') return 'neutral';
+  return mainRoleAlignment === 'good' ? 'good' : 'mixed';
 }
 
 function updatePlayerCount() {
@@ -414,21 +478,15 @@ function updateAliveDeadCount() {
 }
 
 function updateTimer() {
-  if (!gameState?.voting || !gameState.voting.endTime) {
-    clearInterval(timerInterval);
-    timerInterval = null;
+  const votingTimer = document.getElementById('voting-timer');
+  if (!gameState?.voting) {
+    votingTimer.innerHTML = '';
     return;
   }
-  const votingTimer = document.getElementById('voting-timer');
-  const timeLeft = Math.max(0, Math.floor((gameState.voting.endTime - Date.now()) / 1000));
-  if (timeLeft <= 0 && !gameState.voting.showResults) {
-    if (isHost) {
-      endVoting();
-    }
-    votingTimer.innerHTML = 'Głosowanie zakończone';
-    clearInterval(timerInterval);
-    timerInterval = null;
-  } else if (!gameState.voting.showResults) {
+  if (gameState.voting.showResults) {
+    votingTimer.innerHTML = 'Wyniki głosowania';
+  } else {
+    const timeLeft = gameState.voting.timeLeft || 0;
     votingTimer.innerHTML = `Pozostały czas: ${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, '0')}`;
   }
 }
@@ -443,6 +501,8 @@ function updateUI() {
   const hostPlayersGrid = document.getElementById('host-players-grid');
   const rolesList = document.getElementById('roles-list');
   const additionalRolesList = document.getElementById('additional-roles-list');
+  const hostRolesList = document.getElementById('host-roles-list');
+  const hostAdditionalRolesList = document.getElementById('host-additional-roles-list');
   const lobbyTitle = document.getElementById('lobby-title');
   const playersTitle = document.getElementById('players-title');
   const hostActions = document.getElementById('host-actions');
@@ -455,6 +515,7 @@ function updateUI() {
   const randomEventsView = document.getElementById('random-events-view');
   const diceRollView = document.getElementById('dice-roll-view');
   const rolesMenuButton = document.getElementById('roles-menu-button');
+  const hostRolesMenuButton = document.getElementById('host-roles-menu-button');
   const roleCard = document.getElementById('role-card');
 
   if (currentView !== 'random-events-view' && currentView !== 'dice-roll-view') {
@@ -473,6 +534,7 @@ function updateUI() {
     if (randomEventsView) randomEventsView.style.display = 'none';
     if (diceRollView) diceRollView.style.display = 'none';
     rolesMenuButton.style.display = 'none';
+    hostRolesMenuButton.style.display = 'none';
   }
 
   if (!gameState) {
@@ -493,17 +555,7 @@ function updateUI() {
     currentView = 'voting';
     container.style.display = 'block';
     votingView.style.display = 'block';
-    if (gameState.voting.showResults) {
-      clearInterval(timerInterval);
-      timerInterval = null;
-      votingTimer.innerHTML = 'Wyniki głosowania';
-    } else {
-      const timeLeft = gameState.voting.endTime
-        ? Math.max(0, Math.floor((gameState.voting.endTime - Date.now()) / 1000))
-        : Math.floor(gameState.voting.duration / 1000);
-      votingTimer.innerHTML = `Pozostały czas: ${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, '0')}`;
-    }
-
+    updateTimer();
     const voteCounts = {};
     Object.keys(gameState.players).forEach(id => {
       if (gameState.players[id].alive) {
@@ -549,6 +601,7 @@ function updateUI() {
     voteControls.style.display = gameState.started ? 'block' : 'none';
     document.getElementById('random-events-button').style.display = gameState.started ? 'inline-block' : 'none';
     document.getElementById('dice-roll-button').style.display = gameState.started ? 'inline-block' : 'none';
+    hostRolesMenuButton.style.display = 'block';
     document.getElementById('start-button').disabled = gameState.started;
     document.getElementById('assign-roles-button').disabled = gameState.started;
     if (!gameState.started) {
@@ -581,6 +634,12 @@ function updateUI() {
           })
           .join('')
       : '<div>Brak graczy</div>';
+    hostRolesList.innerHTML = gameState.roles
+      .map(role => `<li onclick="showHostRoleDescription('${role.name}', false)">${role.name}</li>`)
+      .join('');
+    hostAdditionalRolesList.innerHTML = gameState.additionalRoles
+      .map(role => `<li onclick="showHostRoleDescription('${role.name}', true)">${role.name}</li>`)
+      .join('');
   } else if (!playerName && !gameState.started) {
     currentView = 'join';
     container.style.display = 'block';
@@ -615,16 +674,18 @@ function updateUI() {
       roleCard.classList.add('disabled');
       document.getElementById('role-info').innerHTML = 'Jesteś martwy!';
       document.getElementById('role-info').style.display = 'block';
+      roleCard.querySelector('.card-front').classList.add('dead');
       document.getElementById('roles-menu').style.display = 'none';
     } else {
       roleCard.classList.remove('disabled');
       document.getElementById('role-info').style.display = 'none';
+      roleCard.querySelector('.card-front').classList.remove('dead');
     }
     rolesList.innerHTML = gameState.roles
-      .map(role => `<li><strong>${role.name}</strong>: ${role.description}</li>`)
+      .map(role => `<li onclick="showRoleDescription('${role.name}', false)">${role.name}</li>`)
       .join('');
     additionalRolesList.innerHTML = gameState.additionalRoles
-      .map(role => `<li><strong>${role.name}</strong>: ${role.description}</li>`)
+      .map(role => `<li onclick="showRoleDescription('${role.name}', true)">${role.name}</li>`)
       .join('');
   }
 

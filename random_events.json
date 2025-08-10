@@ -1,18 +1,54 @@
 [
   {
-    "name": "Zgubiony głos",
-    "description": "<br>Gracz {gracz} traci głos w najbliższym głosowaniu."
+    "name": "Utrata Głosu",
+    "description": "{gracz} przeziębił/a się i stracił/a głos. Nie bierze udziału w dzisiejszych naradach, ale może głosować."
   },
   {
-    "name": "Wygnanie",
-    "description": "<br>Gracz {gracz} zostaje wygnany i traci możliwość działania w tej rundzie."
+    "name": "Święto Wioski",
+    "description": "Dnia dzisiejszego nie ma linczu (głosowania)."
   },
   {
-    "name": "Deszczowa noc",
-    "description": "<br>Wszyscy gracze muszą zostać w domach, co uniemożliwia nocne akcje."
+    "name": "Echo Egekuzcji",
+    "description": "Osoba, która zostanie dziś wygłosowana, może wskazać kogoś, kto traci głos kolejnego dnia."
   },
   {
-    "name": "Tajemnicza mgła",
-    "description": "<br>Tożsamość gracza {gracz} zostaje ukryta do końca rundy."
+    "name": "Sabotaż",
+    "description": "Rola {gracz} nie działa podczas kolejnej nocy."
+  },
+  {
+    "name": "Rytułał Słów Na P",
+    "description": "Gracze mogą mówić tylko słowami zaczynającymi sie na litere P. Złamanie tej zasady powoduje utrate możliwości głosowania i podejmowania działań podczas kolejnej nocy."
+  },
+  {
+    "name": "Klątwa",
+    "description": "{gracz} ustala zasadę, której wszyscy muszą przestrzegać do końca bieżącego dnia. Złamanie tej zasady powoduje utrate możliwości głosowania i podejmowania działań podczas kolejnej nocy."
+  },
+  {
+    "name": "Reorganizacja",
+    "description": "Dwie pary graczy zamieniają się ze sobą miejscami."
+  },
+  {
+    "name": "Dzień Zamiany Głosów",
+    "description": "Głosy są oddawane normalnie, ale efekt jest odwrotny – osoba z najmniejszą liczbą głosów ginie."
+  },
+  {
+    "name": "Kampania Wyborcza",
+    "description": "Rozpoczyna się kampania, podczas której każdy w głosowaniu walczy o immunitet. Zdobywa go osoba z największą ilością głosów. Immunitet chroni osobę przed wszystkimi akcjami i byciem wygłosowanym do końca kolejnego dnia."
+  },
+  {
+    "name": "Plotka",
+    "description": "Zabawa w głuchy telefon. {gracz} otrzymuje imiona 3 osób, z których jedna jest w mafii i przekazuje je osobie po prawej. Ostatnia osoba mówi na głos plotkę i potwierdza jej prawdziwość z pierwszą osobą. Zakazane są rozmowy o plotce między graczami (Z wyjątkiem Mafijnego Obiadku)."
+  },
+  {
+    "name": "Publiczne głosowanie",
+    "description": "Dziś głosy oddajemy publicznie. W taki sposób, aby mógł zobaczyć kogo pragniemy skazać na śmierć."
+  },
+  {
+    "name": "Mafijny obiadek",
+    "description": "{gracz} decyduje z kim uda się na potajemne obrady. Może wybrać max. 2 osoby, z którymi oddali się od grupy."
+  },
+    {
+    "name": "Bomberman",
+    "description": "Dzisiejszego dnia zamiast linczu, odbywa się zabawa w gorącego ziemniaka. Gracze przekazują między sobą bombę do momentu, aż nie wybuchnie i uśmierci nieszczęśnika. Nie można oddawać bomby osobie, od której się ją otrzymało!"
   }
 ]

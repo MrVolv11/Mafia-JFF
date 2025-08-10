@@ -1,8 +1,11 @@
 {
     "additional_roles": [
-      { "name": "Szpieg", "description": "Zna role jednego gracza.", "alignment": "good" },
-      { "name": "Zdrajca", "description": "Współpracuje z mafią w tajemnicy.", "alignment": "bad" },
-      { "name": "Bojówkarz", "description": "Może zablokować akcję innego gracza.", "alignment": "bad" },
-      { "name": "Debilel", "description": "Może zablokować akcję innego gracza.", "alignment": "bad" }
+      { "name": "Szpieg", "description": "Zna rolę jednego gracza.", "alignment": "" },
+      { "name": "Decydent ", "description": "Jeśli podczas głosowania wystąpi remis, decydent jednorazowo ma prawo do zadecydowania kto odpadnie.", "alignment": "" },
+      { "name": "Farciarz", "description": "Jednorazowo w momencie, gdy zostaje zabity lub wygłosowany, rzuca kością i ma 50% szans na przeżycie.", "alignment": "" },
+      { "name": "Kochankowie", "description": "Dwójka zakochanych w sobie osób. Jeśli jeden ginie, drugi również. Kochankowie wygrywają tylko razem.", "alignment": "" },
+      { "name": "Manipulator ", "description": "Raz w grze, w nocy, może zmusić wybranego gracza do oddania głosu na wskazaną osobę. Manipulowany głosuje publicznie zgodnie z decyzją prowadzącego. Chęć manipulacji zgłasza przez uniesienie palca wskazującego, mając ciągle zamknięte oczy.", "alignment": "" },
+      { "name": "Przekupiciel", "description": "Tylko dla Mafii! Po tym jak jeden mafiozo odpadnie, mafia może jednorazowo podczas kolejnych nocnych łowów spróbować przeciągnąć innego gracza na swoją stronę. Robi to wykonując przywołujący gest dłonią – „chodź tu” w stronę wybranej osoby. Rzut kością: 1-2 porażka, 3-6 zwycięstwo.", "alignment": "bad" },
+      { "name": "Iluzjonista", "description": "Każdej nocy podczas narad mafii wybiera jednego mafioza, którego prawdziwą tożsamość ukrywa przed rolami śledczymi.", "alignment": "bad" }
     ]
   }

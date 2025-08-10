@@ -3,23 +3,38 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mafia</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel&family=Cinzel+Decorative&display=swap" rel="stylesheet">
+  <title>Mafia JFF</title>
+  <link rel="icon" type="image/png" href="favicon.ico">
+
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
-    <h1 id="lobby-title">Gra w Mafię</h1>
+    <h1 id="lobby-title">Mafia JFF</h1>
     <div id="join-section" class="section">
       <input type="text" id="player-name" placeholder="Wpisz swoje imię" maxlength="20">
       <div id="join-buttons">
         <button onclick="joinGame()">Dołącz</button>
-        <button id="host-button" onclick="hostGame()">Hostuj grę</button>
+        <button id="host-button" onclick="showHostPinModal()">Hostuj grę</button>
       </div>
     </div>
     <h4 id="players-title">Gracze</h4>
     <ul id="player-list"></ul>
     <div id="host-controls" class="section" style="display: none;">
+      <button id="host-roles-menu-button" onclick="toggleHostRolesMenu()" style="display: none;">Role</button>
+      <div id="host-roles-menu" style="display: none;">
+        <h3>Role</h3>
+        <ul id="host-roles-list"></ul>
+        <h3>Dodatkowe role</h3>
+        <ul id="host-additional-roles-list"></ul>
+      </div>
+      <div id="host-role-description-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+          <h3 id="host-role-description-title"></h3>
+          <div id="host-role-description-text"></div>
+          <button onclick="closeHostRoleDescriptionModal()">Powrót</button>
+        </div>
+      </div>
       <div id="host-actions">
         <div id="roles-config"></div>
         <div id="host-buttons">
@@ -84,19 +99,37 @@
       <button id="finish-voting-button" onclick="finishVoting()" style="display: none;">Powrót</button>
     </div>
     <div id="error-message" class="error-message" style="display: none;"></div>
+    <div id="host-pin-modal" class="modal" style="display: none;">
+      <div class="modal-content">
+        <h3>Wprowadź PIN</h3>
+        <input type="number" id="host-pin-input" placeholder="PIN">
+        <div>
+          <button onclick="closeHostPinModal()">Powrót</button>
+          <button onclick="verifyHostPin()">Potwierdź</button>
+        </div>
+      </div>
+    </div>
   </div>
   <div id="player-view" style="display: none;">
-    <button id="roles-menu-button" onclick="toggleRolesMenu()" style="display: none;">ℹ️</button>
+    <h1 id="game-title">Mafia JFF</h1>
+    <button id="roles-menu-button" onclick="toggleRolesMenu()">Role</button>
     <div id="roles-menu" style="display: none;">
       <h3>Role</h3>
       <ul id="roles-list"></ul>
       <h3>Dodatkowe role</h3>
       <ul id="additional-roles-list"></ul>
     </div>
+    <div id="role-description-modal" class="modal" style="display: none;">
+      <div class="modal-content">
+        <h3 id="role-description-title"></h3>
+        <div id="role-description-text"></div>
+        <button onclick="closeRoleDescriptionModal()">Powrót</button>
+      </div>
+    </div>
     <div class="card" id="role-card">
       <div class="card-front">
         <div class="card-content">
-          <h2>Odsłoń swoją rolę</h2>
+          <h2 id="role-reveal-text">Odsłoń swoją rolę</h2>
           <div id="player-event-message"></div>
         </div>
       </div>

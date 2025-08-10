@@ -1,3 +1,17 @@
+@font-face {
+  font-family: 'Cinzel';
+  src: url('fonts/Cinzel-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Cinzel Decorative';
+  src: url('fonts/CinzelDecorative-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -44,6 +58,16 @@ body {
 
 #player-view.active {
   display: flex;
+}
+
+#game-title {
+  position: absolute;
+  top: 0px; /* Podniesienie napisu */
+  left: 15px;
+  font-family: 'Cinzel Decorative', serif;
+  color: #b22222;
+  text-shadow: 0 0 5px rgba(178, 34, 34, 0.5);
+  font-size: 2.3rem; /* Powiększenie napisu */
 }
 
 h1, h2, h3, h4 {
@@ -98,11 +122,6 @@ button {
   font-size: 1rem;
   text-transform: uppercase;
   letter-spacing: 1px;
-}
-
-button:hover:not(:disabled) {
-  background: #b22222;
-  box-shadow: 0 0 10px rgba(178, 34, 34, 0.5);
 }
 
 button:disabled {
@@ -197,22 +216,21 @@ button:disabled {
   background: #03a9f4;
 }
 
-#roles-menu-button {
+#roles-menu-button, #host-roles-menu-button {
   position: fixed;
-  top: 15px;
+  top: 17px;
   right: 15px;
   background: #4a2c2a;
   color: #fff;
-  border: 2px solid #b22222;
-  border-radius: 50%;
-  width: 60px;
-  height: 60px;
-  font-size: 1.8rem;
-  line-height: 60px;
+  border: 2px solid #4a2c2a;
+  border-radius: 8px;
+  width: 80px;
+  height: 40px;
+  font-size: 1rem;
+  line-height: 40px;
   padding: 0;
   cursor: pointer;
   z-index: 1001;
-  transition: background 0.2s ease, box-shadow 0.2s ease;
   text-align: center;
 }
 
@@ -373,6 +391,10 @@ button:disabled {
   background: rgba(2, 136, 209, 0.3);
 }
 
+.neutral {
+  background: rgba(106, 27, 154, 0.3);
+}
+
 .modal {
   position: fixed;
   top: 0;
@@ -425,10 +447,10 @@ button:disabled {
   max-width: 500px;
   height: calc(500px / 0.64);
   margin: 0;
+  margin-top: 70px; /* Przywrócono oryginalny margin-top */
   position: relative;
   transition: transform 0.6s;
   transform-style: preserve-3d;
-  margin-top: 70px;
 }
 
 .card.flipped {
@@ -457,6 +479,26 @@ button:disabled {
 .card-front {
   flex-direction: column;
   gap: 250px;
+}
+
+.card-front.dead {
+  opacity: 0.6;
+}
+
+.card-front.dead #role-reveal-text {
+  display: none;
+}
+
+.card-front.dead::after {
+  content: 'Nie żyjesz';
+  font-family: 'Cinzel Decorative', serif;
+  color: #b22222;
+  text-shadow: 0 0 5px rgba(178, 34, 34, 0.5);
+  font-size: 1.8rem;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .card-back {
@@ -517,21 +559,21 @@ button:disabled {
 }
 
 #role-info div {
-  margin-bottom: 150px;
+  margin-bottom: 30px;
 }
 
 #role-info div:last-child {
-  margin-bottom: 0;
+  margin-bottom: 0px;
 }
 
 #role-info strong {
   color: #b22222;
   font-family: 'Cinzel Decorative', serif;
-  font-size: 1rem;
+  font-size: 1.2rem; /* Powiększenie czcionki dla roli i dodatkowej roli */
 }
 
-#roles-menu {
-  position: fixed;
+#roles-menu, #host-roles-menu {
+  position: absolute;
   top: 80px;
   right: 15px;
   background: #2a2a2a;
@@ -545,13 +587,13 @@ button:disabled {
   z-index: 1000;
 }
 
-#roles-list, #additional-roles-list {
+#roles-list, #additional-roles-list, #host-roles-list, #host-additional-roles-list {
   list-style: none;
   padding: 0;
   margin: 0 0 10px;
 }
 
-#roles-list li, #additional-roles-list li {
+#roles-list li, #additional-roles-list li, #host-roles-list li, #host-additional-roles-list li {
   padding: 12px;
   margin: 5px 0;
   background: #333;
@@ -559,6 +601,11 @@ button:disabled {
   border: 1px solid #4a2c2a;
   text-align: left;
   word-wrap: break-word;
+  cursor: pointer;
+}
+
+#roles-list li:hover, #additional-roles-list li:hover, #host-roles-list li:hover, #host-additional-roles-list li:hover {
+  background: #4a2c2a;
 }
 
 #voting-view {
@@ -661,7 +708,7 @@ button:disabled {
 .counter {
   font-size: 0.85rem;
   color: #d4d4d4;
-  margin: 10px 0;
+  margin-bottom: 10px;
 }
 
 .error-message {
@@ -748,14 +795,17 @@ button:disabled {
     max-width: 200px;
   }
   #player-count {
-    margin-top: 8px;
+    margin-top: 10px;
   }
   #join-buttons {
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
   }
   #player-event-message, #host-event-message, #random-event-message {
     font-size: 0.85rem;
+  }
+  #player-event-message {
+    margin-top: 30px;
   }
   .card {
     max-width: calc(100vw - 20px);
@@ -767,23 +817,31 @@ button:disabled {
   .card-front {
     gap: 200px;
   }
+  .card-front.dead::after {
+    font-size: 1.5rem;
+  }
   #role-info {
-    font-size: 0.85rem;
+    font-size: 1.05rem;
   }
-  #role-info div {
-    margin-bottom: 120px;
+  #role-info strong {
+    font-size: 1.2rem; /* Dostosowanie dla mniejszych ekranów */
   }
+
   #role-info div:last-child {
     margin-bottom: 0;
   }
-  #roles-menu-button {
-    width: 50px;
-    height: 50px;
-    font-size: 1.5rem;
-    line-height: 50px;
+  #game-title {
+    font-size: 1.8rem; /* Dostosowanie dla mniejszych ekranów */
+    left: 12px;
   }
-  #roles-menu {
-    top: 70px;
+  #roles-menu-button, #host-roles-menu-button {
+    width: 70px;
+    height: 35px;
+    font-size: 0.9rem;
+    line-height: 35px;
+  }
+  #roles-menu, #host-roles-menu {
+    top:175px;
   }
 }
 
@@ -804,22 +862,35 @@ button:disabled {
   .card-front {
     gap: 150px;
   }
+  .card-front.dead::after {
+    font-size: 1.3rem;
+  }
   #role-info {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
   }
-  #role-info div {
-    margin-bottom: 100px;
+  #role-info strong {
+    font-size: 1.0rem; /* */
   }
+
   #role-info div:last-child {
     margin-bottom: 0;
   }
-  #roles-menu-button {
-    width: 45px;
-    height: 45px;
-    font-size: 1.3rem;
-    line-height: 45px;
+
+  #player-event-message {
+    margin-top: 30px;
   }
-  #roles-menu {
+
+  #game-title {
+    font-size: 1.6rem; /* Dostosowanie dla bardzo małych ekranów */
+    left: 10px;
+  }
+  #roles-menu-button, #host-roles-menu-button {
+    width: 60px;
+    height: 30px;
+    font-size: 0.8rem;
+    line-height: 30px;
+  }
+  #roles-menu, #host-roles-menu {
     top: 65px;
   }
 }
